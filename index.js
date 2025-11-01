@@ -5,7 +5,8 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI;
-
+app.use(cors());
+app.use(express.json());
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -15,12 +16,27 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const userDB = client.db("userDataBase");
     const productsCollection = userDB.collection("products");
     const bidsCollection = userDB.collection("BidData");
+    const userCollection = userDB.collection("users");
 
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const email = req.body.email;
+      const query = { email: email };
+      console.log(query);
+
+      const existingUser = await userCollection.findOne(query);
+      console.log(existingUser);
+      if (existingUser) {
+        return res.send({ message: "User already exists" });
+      } else {
+        const result = await userCollection.insertOne(newUser);
+        res.send(result);
+      }
+    });
     app.get("/products", async (req, res) => {
       console.log(req.query);
       const email = req.query.email;
@@ -98,8 +114,7 @@ async function run() {
   }
 }
 run().catch(console.dir);
-app.use(cors());
-app.use(express.json());
+
 app.get("/", (req, res) => {
   res.send("Server Running");
 });
