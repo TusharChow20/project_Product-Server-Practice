@@ -26,16 +26,26 @@ async function run() {
       const newUser = req.body;
       const email = req.body.email;
       const query = { email: email };
-      console.log(query);
 
       const existingUser = await userCollection.findOne(query);
-      console.log(existingUser);
+      // console.log(existingUser);
       if (existingUser) {
         return res.send({ message: "User already exists" });
       } else {
         const result = await userCollection.insertOne(newUser);
         res.send(result);
       }
+    });
+    app.get("/users", async (req, res) => {
+      // console.log(req.query);
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.email = email;
+      }
+      const cursor = userCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
     });
     app.get("/products", async (req, res) => {
       console.log(req.query);
