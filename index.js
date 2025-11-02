@@ -101,6 +101,7 @@ async function run() {
       const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
+
     // Send a ping to confirm a successful connection
 
     app.get("/BidData", async (req, res) => {
@@ -113,7 +114,17 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
+    app.get("/products/bids/:productID", async (req, res) => {
+      const productID = req.params.productID;
+      console.log("Searching for productID:", productID);
+      const query = {
+        product: productID,
+      };
+      const cursor = bidsCollection.find(query).sort({ bid_price: -1 });
+      const result = await cursor.toArray();
+      console.log("Found bids:", result.length);
+      res.send(result);
+    });
     app.post("/BidData", async (req, res) => {
       const newBid = req.body;
       const result = await bidsCollection.insertOne(newBid);
