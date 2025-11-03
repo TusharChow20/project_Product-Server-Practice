@@ -105,6 +105,8 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     app.get("/BidData", async (req, res) => {
+      console.log(req.headers);
+
       const email = req.query.email;
       const query = {};
       if (email) {
