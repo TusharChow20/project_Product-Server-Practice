@@ -3,24 +3,43 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
+
+const admin = require("firebase-admin");
 const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI;
+
+const serviceAccount = require("./deal-product-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 app.use(cors());
 app.use(express.json());
 
-const firebaseToken = (req, res, next) => {
+const firebaseToken = async (req, res, next) => {
   const autorize = req.headers.authorization;
+  // console.log(aut);
+
   if (!autorize) {
     return res.status(401).send({ message: "unauthorized access" });
   }
   const authSplit = autorize.split(" ")[1];
+  console.log(authSplit);
+
   if (!authSplit) {
     return res.status(401).send({ message: "unauthorized access" });
   }
-  console.log(authSplit);
+  // console.log(authSplit);
+  try {
+    await admin.auth().verifyIdToken(authSplit);
+    // req_email = UserInfo.email
+    next();
+  } catch {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
 
   // if
-  next();
 };
 const client = new MongoClient(uri, {
   serverApi: {
@@ -120,7 +139,7 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     app.get("/BidData", firebaseToken, async (req, res) => {
-      // console.log(req.headers);
+      console.log(req);
 
       const email = req.query.email;
       const query = {};
