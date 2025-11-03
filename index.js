@@ -7,6 +7,21 @@ const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI;
 app.use(cors());
 app.use(express.json());
+
+const firebaseToken = (req, res, next) => {
+  const autorize = req.headers.authorization;
+  if (!autorize) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const authSplit = autorize.split(" ")[1];
+  if (!authSplit) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  console.log(authSplit);
+
+  // if
+  next();
+};
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -104,8 +119,8 @@ async function run() {
 
     // Send a ping to confirm a successful connection
 
-    app.get("/BidData", async (req, res) => {
-      console.log(req.headers);
+    app.get("/BidData", firebaseToken, async (req, res) => {
+      // console.log(req.headers);
 
       const email = req.query.email;
       const query = {};
