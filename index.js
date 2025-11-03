@@ -120,6 +120,9 @@ async function run() {
       const query = {
         product: productID,
       };
+      // const bid_price_num = parseInt(bid_price);
+      // console.log(bid_price);
+
       const cursor = bidsCollection.find(query).sort({ bid_price: -1 });
       const result = await cursor.toArray();
       console.log("Found bids:", result.length);
