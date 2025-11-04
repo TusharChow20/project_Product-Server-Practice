@@ -45,6 +45,25 @@ const firebaseToken = async (req, res, next) => {
 
   // if
 };
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  const token = authorization.split(" ")[1];
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+  jwt.verify(token, process.env.JWT_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
+    req.buyer_email = decoded.email;
+    next();
+  });
+
+  // next();
+};
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -154,11 +173,13 @@ async function run() {
 
     // Send a ping to confirm a successful connection
 
-    app.get("/BidData", firebaseToken, async (req, res) => {
-      console.log(req);
+    app.get("/BidData", verifyJWT, async (req, res) => {
+      // console.log(req.headers);
 
       const email = req.query.email;
       const query = {};
+      console.log(email);
+
       if (email) {
         if (email !== req.buyer_email) {
           return res.status("403").send({ message: "forbidden access" });
@@ -175,8 +196,6 @@ async function run() {
       const query = {
         product: productID,
       };
-      // const bid_price_num = parseInt(bid_price);
-      // console.log(bid_price);
 
       const cursor = bidsCollection.find(query).sort({ bid_price: -1 });
       const result = await cursor.toArray();
