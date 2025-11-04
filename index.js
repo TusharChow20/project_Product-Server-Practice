@@ -3,7 +3,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
-
+const jwt = require("jsonwebtoken");
+// const token = jwt.sign({ foo: 'bar' }, 'shhhhh');
 const admin = require("firebase-admin");
 const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI;
@@ -58,6 +59,18 @@ async function run() {
     const productsCollection = userDB.collection("products");
     const bidsCollection = userDB.collection("BidData");
     const userCollection = userDB.collection("users");
+
+    //jwt
+    app.post("/getToken", (req, res) => {
+      const loggedUser = req.body;
+
+      const token = jwt.sign(loggedUser, process.env.JWT_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      // console.log(token);
+
+      res.send({ token: token });
+    });
 
     app.post("/users", async (req, res) => {
       const newUser = req.body;
