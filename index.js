@@ -19,7 +19,7 @@ app.use(express.json());
 
 const firebaseToken = async (req, res, next) => {
   const autorize = req.headers.authorization;
-  // console.log(aut);
+  // console.log(req);
 
   if (!autorize) {
     return res.status(401).send({ message: "unauthorized access" });
@@ -32,8 +32,11 @@ const firebaseToken = async (req, res, next) => {
   }
   // console.log(authSplit);
   try {
-    await admin.auth().verifyIdToken(authSplit);
+    const userInfo = await admin.auth().verifyIdToken(authSplit);
+    req.buyer_email = userInfo.email;
     // req_email = UserInfo.email
+    // console.log(userInfo);
+
     next();
   } catch {
     return res.status(401).send({ message: "unauthorized access" });
@@ -144,13 +147,16 @@ async function run() {
       const email = req.query.email;
       const query = {};
       if (email) {
+        if (email !== req.buyer_email) {
+          return res.status("403").send({ message: "forbidden access" });
+        }
         query.buyer_email = email;
       }
       const cursor = bidsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
-    app.get("/products/bids/:productID", async (req, res) => {
+    app.get("/products/bids/:productID", firebaseToken, async (req, res) => {
       const productID = req.params.productID;
       console.log("Searching for productID:", productID);
       const query = {
