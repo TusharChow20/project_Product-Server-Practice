@@ -9,7 +9,12 @@ const admin = require("firebase-admin");
 const port = process.env.PORT || 3000;
 const uri = process.env.MONGO_URI;
 
-const serviceAccount = require("./deal-product-firebase-adminsdk.json");
+// index.js
+const decoded = Buffer.from(
+  process.env.FIREBASE_SERVICE_KEY,
+  "base64"
+).toString("utf8");
+const serviceAccount = JSON.parse(decoded);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -73,7 +78,7 @@ const client = new MongoClient(uri, {
 });
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const userDB = client.db("userDataBase");
     const productsCollection = userDB.collection("products");
     const bidsCollection = userDB.collection("BidData");
@@ -213,7 +218,7 @@ async function run() {
       const result = await bidsCollection.deleteOne(query);
       res.send(result);
     });
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );

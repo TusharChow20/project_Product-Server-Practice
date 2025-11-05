@@ -1,3 +1,4 @@
 node_modules/
 .env
 deal-product-firebase-adminsdk.json
+.vercel
